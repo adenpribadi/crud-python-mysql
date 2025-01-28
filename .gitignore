@@ -1,14 +1,63 @@
-# File rahasia
-.env
-config/secrets.yml
-
-# Folder yang diabaikan
-node_modules/
-logs/
-
-# File cache atau sistem
-*.log
-*.tmp
-.DS_Store
-
+# Byte-compiled / optimized / DLL files
 __pycache__/
+*.py[cod]
+
+# C extensions
+*.so
+
+# Distribution / packaging
+bin/
+build/
+develop-eggs/
+dist/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+
+# Rope
+.ropeproject
+
+# Django stuff:
+*.log
+*.pot
+
+# Sphinx documentation
+docs/_build/
+
+.env
+
+.installed.cfg
+bin
+develop-eggs
+dist
+downloads
+eggs
+parts
+src/*.egg-info
+lib
+lib64
