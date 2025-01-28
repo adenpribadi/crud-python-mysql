@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <div class="card mb-4">
+    <div class="card-header">
+      Edit Detail
+    </div>
+    <div class="card-body">
+			<form method="POST" action="{{ url_for('{record}.edit', id={record}.id) }}">
+				{{ form.csrf_token }}
+			  {% include '{records}/form.html' %}
+			  <hr>
+    		<a class="btn btn-secondary" href="{{ url_for('{record}.lists') }}">Back</a>
+			  <button type="submit" class="btn btn-primary">Update</button>
+			</form>
+		</div>
+	</div>
+{% endblock %}

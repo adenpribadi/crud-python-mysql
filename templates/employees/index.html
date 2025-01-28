@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <div class="card mb-4">
+    <div class="card-header">
+    	<a class="btn btn-primary" href="{{ url_for('employee.new') }}">Add</a>
+    </div>
+    <div class="card-body">
+    	<table class="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Action</th>
+            <th>Name</th>
+            <th>Position</th>
+            <th>Department</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if employees %}
+            {% for employee in employees %}
+            <tr>
+              <td>{{ employee.id }}</td>
+              <td><a href="{{ url_for('employee.show', id=employee.id) }}">View Details</a></td>
+              <td>{{ employee.name }}</td>
+              <td>{{ employee.position.name }}</td>
+              <td>{{ employee.department.name }}</td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="4">No employees found</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

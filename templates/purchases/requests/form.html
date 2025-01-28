@@ -1,0 +1,275 @@
+<!-- Requester Name, Request Date -->
+<div class="row mb-4">
+  <div class="col-md-3">
+    <label for="reference_number" class="form-label">Request Number</label>
+    <input type="text" id="reference_number" class="form-control" name="reference_number" value="{{ purchase_request.reference_number if purchase_request else '' }}" disabled>
+  </div>
+  <div class="col-md-3">
+    <label for="reference_date" class="form-label">Request Date</label>
+    <input type="date" id="reference_date" class="form-control" name="reference_date" value="{{ purchase_request.reference_date if purchase_request else '' }}" {% if disabled == "true" %} disabled {% endif %} required
+    min="{{ purchase_request.reference_date_min.strftime('%Y-%m-%d') if purchase_request else ''}}"
+    max="{{ purchase_request.reference_date_max.strftime('%Y-%m-%d') if purchase_request else ''}}" >
+  </div>
+  <div class="col-md-3">
+    <label for="request_kind" class="form-label">Request Kind</label>
+    <input type="text" id="request_kind" class="form-control" name="request_kind" value="{{ purchase_request.request_kind if purchase_request else request.args.get('q') }}" readonly>
+  </div>
+  <div class="col-md-3">
+    <label for="status" class="form-label">Status</label>
+    <input type="text" id="status" class="form-control" name="status" value="{{ purchase_request.status if purchase_request else '' }}" disabled>
+  </div>
+</div>
+
+<!-- Department and Department Section -->
+<div class="row mb-4">
+  <div class="col-md-6">
+    <label for="department" class="form-label">Department</label>
+    <select class="form-select" id="department" name="department" {% if disabled == "true" or (purchase_request and purchase_request.reference_number != "") %} disabled {% endif %} required>
+      <option value="">Select Department</option>
+      {% for department in departments %}
+      <option value="{{ department.id }}" {% if purchase_request and purchase_request.department_id == department.id %} selected {% endif %}>
+        {{ department.name }}
+      </option>
+      {% endfor %}
+    </select>
+    <!-- Hidden input for department_id -->
+    <input type="hidden" name="department" value="{{ purchase_request.department_id if purchase_request else '' }}">
+  </div>
+  <div class="col-md-6">
+    <label for="employee_section" class="form-label">Department Section</label>
+    <select class="form-select" id="employee_section" name="employee_section" {% if disabled == "true" or (purchase_request and purchase_request.reference_number != "") %} disabled {% endif %} required>
+      <option value="">Select Section</option>
+      {% for employee_section in employee_sections %}
+      <option value="{{ employee_section.id }}" {% if purchase_request and purchase_request.employee_section_id == employee_section.id %} selected {% endif %}>
+        {{ employee_section.name }}
+      </option>
+      {% endfor %}
+    </select>
+    <!-- Hidden input for employee_section_id -->
+    <input type="hidden" name="employee_section" value="{{ purchase_request.employee_section_id if purchase_request else '' }}">
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-md-6">
+    <label for="remarks" class="form-label">Note</label>
+    <input type="text" id="remarks" class="form-control" name="remarks" value="{{ purchase_request.remarks if purchase_request else '' }}" {% if disabled == "true" %} disabled {% endif %}>
+  </div>
+</div>
+<hr>
+<!-- Item List Section -->
+{% if disabled != "true" %}
+<button type="button" class="btn btn-secondary mb-3" onclick="addNewItem()">Add Item</button>
+{% endif %}
+<div class="table-responsive">
+  <table class="table table-bordered">
+    <thead>
+      <tr class="table-light">
+        <th>Name</th>
+        <th>Quantity</th>
+        <th>Unit</th>
+        <th>Notes</th>
+        {% if disabled != "true" %}
+        <th>Actions</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% if purchase_request_items %}
+        {% for item in purchase_request_items %}
+        <tr>
+          <td>
+            <!-- Kolom material_id tersembunyi -->
+            {% if form %}
+              <input type="hidden" name="items-{{ loop.index0 }}-csrf_token" value="{{ form.csrf_token._value() }}">
+            {% endif %}
+            <input type="hidden" name="items-{{ loop.index0 }}-record_id" value="{{ item.id }}">
+
+            <!-- Kolom pencarian untuk nama barang -->
+            {% if request.args.get('q') == 'material' %}
+              <input type="hidden" name="items-{{ loop.index0 }}-material_id" value="{{ item.material.id }}">
+              <input type="hidden" name="items-{{ loop.index0 }}-general_id">
+              <input type="text" name="items-{{ loop.index0 }}-name" value="{{ item.material.name }}" class="form-control search-item" {% if disabled == "true" %} disabled {% endif %} onkeyup="searchItems(this, {{ loop.index0 }})" autocomplete="off">
+              <ul class="search-results" id="search-results-{{ loop.index0 }}" style="display: none; position: absolute; list-style-type: none; padding: 0; margin-top: 5px; border: 1px solid #ddd; background-color: white; z-index: 999;"></ul>
+            {% elif request.args.get('q') == 'general' %}
+            <input type="hidden" name="items-{{ loop.index0 }}-material_id">
+            <input type="hidden" name="items-{{ loop.index0 }}-general_id" value="{{ item.general.id }}">
+              <input type="text" name="items-{{ loop.index0 }}-name" value="{{ item.general.name }}" class="form-control search-item" {% if disabled == "true" %} disabled {% endif %} onkeyup="searchItems(this, {{ loop.index0 }})" autocomplete="off">
+              <ul class="search-results" id="search-results-{{ loop.index0 }}" style="display: none; position: absolute; list-style-type: none; padding: 0; margin-top: 5px; border: 1px solid #ddd; background-color: white; z-index: 999;"></ul>
+            {% endif %}
+          </td>
+          <td>
+            <input type="number" name="items-{{ loop.index0 }}-quantity" value="{{ item.quantity }}" class="form-control" {% if disabled == "true" %} disabled {% endif %}>
+          </td>
+          <td>
+            {% if request.args.get('q') == 'material' %}
+            <input type="text" name="items-{{ loop.index0 }}-unit" value="{{ item.material.unit.name if item.material and item.material.unit else 'N/A' }}" class="form-control" disabled="" autocomplete="off">
+            {% elif request.args.get('q') == 'general' %}
+            <input type="text" name="items-{{ loop.index0 }}-unit" value="{{ item.general.unit.name if item.general and item.general.unit else 'N/A' }}" class="form-control" disabled="" autocomplete="off">
+            {% endif %}
+          </td>
+          <td>
+            <input type="text" name="items-{{ loop.index0 }}-remarks" value="{{ item.remarks }}" class="form-control" {% if disabled == "true" %} disabled {% endif %}>
+          </td>
+          {% if disabled != "true" %}
+          <td>
+            <!-- Tombol untuk memilih status Active atau Suspend -->
+            <select name="items-{{ loop.index0 }}-status" class="form-control">
+              <option value="active" {% if item.status == 'active' %} selected {% endif %}>Active</option>
+              <option value="deleted" {% if item.status == 'deleted' %} selected {% endif %}>deleted</option>
+            </select>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      {% else %}
+        <!-- Kolom kosong jika tidak ada data -->
+        <tr>
+          <td>
+            {% if form %}
+              <input type="hidden" name="items-0-csrf_token" value="{{ form.csrf_token._value() }}">
+            {% endif %}
+
+            <input type="hidden" name="items-0-material_id">
+            <input type="hidden" name="items-0-general_id">
+
+            <input type="text" name="items-0-name" class="form-control search-item" onkeyup="searchItems(this, 0)">
+            <ul class="search-results" id="search-results-0" style="display: none; position: absolute; list-style-type: none; padding: 0; margin-top: 5px; border: 1px solid #ddd; background-color: white; z-index: 999;"></ul>
+
+          <td>
+            <input type="number" name="items-0-quantity" class="form-control">
+          </td>
+          <td>
+            <input type="text" name="items-0-unit" class="form-control" disabled="">
+          </td>
+          <td>
+            <input type="text" name="items-0-remarks" class="form-control">
+          </td>
+          {% if disabled != "true" %}
+          <td>
+            <select name="items-0-status]" class="form-control">
+              <option value="active">Active</option>
+              <option value="deleted">deleted</option>
+            </select>
+          </td>
+          {% endif %}
+        </tr>
+      {% endif %}
+    </tbody>
+
+  </table>
+</div>
+
+<script>
+  // Function to add a new item row
+  function addNewItem() {
+    {% if form %}
+    const table = document.querySelector("table tbody");
+    const index = table.rows.length;  // Get the index for the new row (length of current rows)
+    const csrf_token = "{{form.csrf_token._value()}}";
+    const row = table.insertRow();
+    row.innerHTML = `
+      <td>
+        <input type="hidden" name="items-${index}-csrf_token" value="${csrf_token}">
+        <input type="hidden" name="items-${index}-material_id">
+        <input type="hidden" name="items-${index}-general_id">
+        <input type="text" name="items-${index}-name" class="form-control" onkeyup="searchItems(this, ${index})">
+        <ul class="search-results" id="search-results-${index}" style="display: none; position: absolute; list-style-type: none; padding: 0; margin-top: 5px; border: 1px solid #ddd; background-color: white; z-index: 999;"></ul>
+      </td>
+      <td><input type="number" name="items-${index}-quantity" class="form-control"></td>
+      <td><input type="text" name="items-${index}-unit" class="form-control" disabled></td>
+      <td><input type="text" name="items-${index}-remarks" class="form-control"></td>
+      <td><button type="button" class="btn btn-danger" onclick="removeItem(this)">Remove</button></td>
+    `;
+    {% endif %}
+  }
+
+  // Function to remove an item row
+  function removeItem(button) {
+    const row = button.closest("tr");
+    row.remove();
+  }
+
+  const employeeSections = {{ employee_sections|tojson }};
+  const departmentSelect = document.getElementById("department");
+  const employeeSectionSelect = document.getElementById("employee_section");
+
+  departmentSelect.addEventListener("change", function () {
+    const departmentId = this.value;
+
+    // Clear existing options
+    employeeSectionSelect.innerHTML = '<option value="">Select Section</option>';
+
+    // Populate new options
+    const filteredSections = employeeSections.filter(
+      (section) => section.department_id == departmentId
+    );
+
+    filteredSections.forEach((section) => {
+      const option = document.createElement("option");
+      option.value = section.id;
+      option.textContent = section.name;
+      employeeSectionSelect.appendChild(option);
+    });
+  });
+
+  // Data JSON barang
+  // Ambil data material yang dikirimkan dari backend
+  {% if request.args.get('q') == 'material' %}
+    const itemsData = {{ materials | tojson | safe }};  // Use 'safe' to prevent escaping of JSON
+  {% elif request.args.get('q') == 'general' %}
+    const itemsData = {{ generals | tojson | safe }};  // Use 'safe' to prevent escaping of JSON
+  {% endif %}
+
+  // Fungsi pencarian dan penampilan saran berdasarkan input pengguna
+  function searchItems(inputElement, itemId) {
+    const query = inputElement.value.toLowerCase();
+    const results = itemsData.filter(item => item.name.toLowerCase().includes(query));
+    
+    // Ambil daftar hasil pencarian berdasarkan itemId
+    const resultsList = document.getElementById('search-results-' + itemId);
+    resultsList.innerHTML = ''; // Reset daftar hasil pencarian
+    
+    if (query) {
+      results.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item.name;
+        li.style.padding = '5px';
+        li.style.cursor = 'pointer';
+        
+        // Set input dengan nama barang yang dipilih dan sembunyikan hasil pencarian setelah memilih
+        li.onclick = function() {
+          // Set input dengan nama barang yang dipilih
+          inputElement.value = item.name;
+          console.log(`${itemId} - [${item.id}] ${item.name} - ${item.unit}`);
+
+          // Find the hidden material_id input and set its value to the selected material's ID
+          const unit_name = document.querySelector('input[name="items-' + itemId + '-unit"]');
+          {% if request.args.get('q') == 'material' %}
+            const materialIdInput = document.querySelector('input[name="items-' + itemId + '-material_id"]');
+            if (materialIdInput) {
+              materialIdInput.value = item.id;  // Set material_id to the selected material's ID
+            }
+          {% elif request.args.get('q') == 'general' %}
+            const generalIdInput = document.querySelector('input[name="items-' + itemId + '-general_id"]');
+            if (generalIdInput) {
+              generalIdInput.value = item.id;  // Set general_id to the selected general's ID
+            }
+          {% endif %}
+
+          if (unit_name) {
+            unit_name.value = item.unit;
+          }
+
+          resultsList.style.display = 'none'; // Sembunyikan hasil pencarian setelah memilih
+        };
+        resultsList.appendChild(li);
+      });
+      resultsList.style.display = 'block'; // Tampilkan hasil pencarian
+    } else {
+      resultsList.style.display = 'none'; // Sembunyikan hasil jika input kosong
+    }
+  }
+
+</script>
+

@@ -1,0 +1,12 @@
+# File rahasia
+.env
+config/secrets.yml
+
+# Folder yang diabaikan
+node_modules/
+logs/
+
+# File cache atau sistem
+*.log
+*.tmp
+.DS_Store

@@ -1,0 +1,73 @@
+
+<!DOCTYPE html><!--
+* CoreUI - Free Bootstrap Admin Template
+* @version v5.1.1
+* @link https://coreui.io/product/free-bootstrap-admin-template/
+* Copyright (c) 2024 creativeLabs Łukasz Holeczek
+* Licensed under MIT (https://github.com/coreui/coreui-free-bootstrap-admin-template/blob/main/LICENSE)
+-->
+<html lang="en">
+  <head>
+    <base href="{{ url_for('static', filename='./') }}">
+    <!-- Include the common head content -->
+    {% include 'head.html' %}
+  </head>
+  <body>
+    <div class="sidebar sidebar-dark sidebar-fixed border-end" id="sidebar">
+      <!-- Include the sidebar from sidebar.html -->
+      {% include 'sidebar.html' %}
+    </div>
+    <div class="wrapper d-flex flex-column min-vh-100">
+      <header class="header header-sticky p-0 mb-4">
+        <!-- Include the navbar from navbar.html -->
+        {% include 'navbar.html' %}
+
+        <div class="container-fluid px-4">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb my-0">
+              <li class="breadcrumb-item"><a href="#">Home</a>
+              </li>
+              <li class="breadcrumb-item active"><span>Employees</span>
+              </li>
+            </ol>
+          </nav>
+        </div>
+      </header>
+
+      <div class="body flex-grow-1">
+        <div class="container-lg px-4">
+          <div class="card mb-4">
+            <div class="card-header">
+              Employee Detail
+            </div>
+            <div class="card-body">
+              <form action="{{ url_for('employee.edit', id=employee.id) }}" method="POST" enctype="multipart/form-data">
+                {{ form.csrf_token }}
+                {% if employee %}
+                  {% include 'employees/form.html' %}
+                {% else %}
+                    <p>Employee not found</p>
+                {% endif %}
+                
+                <a class="btn btn-secondary" href="{{ url_for('employee.lists') }}">Back</a>
+                <button type="submit" class="btn btn-primary">Save</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Include the footer from footer.html -->
+      {% include 'footer.html' %}
+    </div>
+    
+    <!-- Include the script from script.html -->
+    {% include 'script.html' %}
+
+        <!-- jQuery, Popper.js, dan Bootstrap JS untuk modal -->
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+
+  </body>
+</html>

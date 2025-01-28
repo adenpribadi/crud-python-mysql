@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="card mb-4">
+  <div class="card-header">
+    Show Detail
+  </div>
+  <div class="card-body">
+		<div>
+{detail_columns}
+		</div>
+		<hr>
+    <a class="btn btn-secondary" href="{{ url_for('{record}.lists') }}">Back</a>
+		<a class="btn btn-primary" href="{{ url_for('{record}.edit', id={record}.id) }}">Edit</a>
+	</div>
+</div>
+{% endblock %}
