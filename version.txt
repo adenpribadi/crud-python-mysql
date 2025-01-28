@@ -1,0 +1,8 @@
+# version.txt
+[Version]
+FileVersion=1.0.0.0
+ProductVersion=1.0.0.0
+CompanyName=Vzveda
+FileDescription=Deskripsi aplikasi Anda
+ProductName=ERP Dekstop
+LegalCopyright=© 2024 Vzveda

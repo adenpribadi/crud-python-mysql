@@ -1,0 +1,54 @@
+# Python Bytecode Files
+__pycache__/
+*.py[cod]
+
+# Virtual Environment
+venv/
+env/
+ENV/
+*.venv/
+
+# Distribution / Packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Python coverage reports
+.coverage
+.coverage.*
+*.coveragerc
+
+# Unit test / pytest
+*.tox/
+*.nox/
+*.coverage
+*.hypothesis/
+.pytest_cache/
+
+# IDE / Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# MacOS specific
+.DS_Store
+
+# Windows specific
+Thumbs.db
+ehthumbs.db
+
+# Log files
+*.log
+
+# Environment Variables
+.env
+.env.*

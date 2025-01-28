@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Configuration</title>
+    <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+  </head>
+  <body>
+    <div class="container mt-5">
+      <div class="row justify-content-center">
+        <div class="col-md-6">
+          <div class="card p-4 shadow-sm">
+            <h1 class="text-center mb-4">Database Configuration</h1>
+
+            <div id="testResult" class="d-none alert" role="alert"></div>
+
+            <form id="configForm" method="POST">
+              <div class="mb-3">
+                <label for="host" class="form-label">Host:</label>
+                <input type="text" class="form-control" id="host" name="host" value="{{ config.host }}" required>
+              </div>
+
+              <div class="mb-3">
+                <label for="port" class="form-label">Port:</label>
+                <input type="text" class="form-control" id="port" name="port" value="{{ config.port }}" required>
+              </div>
+
+              <div class="mb-3">
+                <label for="user" class="form-label">User:</label>
+                <input type="text" class="form-control" id="user" name="user" value="{{ config.user }}" required>
+              </div>
+
+              <div class="mb-3">
+                <label for="password" class="form-label">Password:</label>
+                <input type="password" class="form-control" id="password" name="password" value="{{ config.password }}" required>
+              </div>
+
+              <div class="mb-3">
+                <label for="database" class="form-label">Database:</label>
+                <input type="text" class="form-control" id="database" name="database" value="{{ config.database }}" required>
+              </div>
+              <hr>
+              <div class="mb-3">
+                <label for="cdn_host" class="form-label">CDN:</label>
+                <input type="text" class="form-control" id="cdn_host" name="cdn_host" value="{{ config.cdn_host }}" required title="127.0.0.1">
+              </div>
+              <div class="mb-3">
+                <label for="cdn_user" class="form-label">CDN User:</label>
+                <input type="text" class="form-control" id="cdn_user" name="cdn_user" value="{{ config.cdn_user }}" required title="127.0.0.1">
+              </div>
+              <div class="mb-3">
+                <label for="cdn_password" class="form-label">CDN Password:</label>
+                <input type="password" class="form-control" id="cdn_password" name="cdn_password" value="{{ config.cdn_password }}" required title="127.0.0.1">
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100">Save</button>
+            </form>
+
+            <!-- Test Connection button -->
+            <button id="testConnectionButton" class="btn btn-secondary w-100 mt-3">Test Connection</button>
+            <div id="testConnectionResult" class="mt-3"></div>
+
+            <a href="/" class="btn btn-link w-100 mt-3">Back to Home</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Bootstrap 5 JS -->
+      {% include 'toast.html' %}
+    <!-- Bootstrap 5 JS and Popper.js -->
+    <script src="{{ url_for('static', filename='vendors/@coreui/coreui/js/coreui.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+
+    <!-- AJAX script -->
+    <script>
+      document.getElementById("testConnectionButton").addEventListener("click", function (event) {
+        event.preventDefault(); // Prevent form submission
+
+        // Create a FormData object to collect form data
+        const formData = new FormData();
+        formData.append('cdn_host', document.getElementById('cdn_host').value); // Add CDN host
+        formData.append('cdn_user', document.getElementById('cdn_user').value); // Add CDN user
+        formData.append('cdn_password', document.getElementById('cdn_password').value); // Add CDN password
+        formData.append('host', document.getElementById('host').value);
+        formData.append('port', document.getElementById('port').value);
+        formData.append('user', document.getElementById('user').value);
+        formData.append('password', document.getElementById('password').value);
+        formData.append('database', document.getElementById('database').value);
+
+        // Send the form data using fetch (AJAX)
+        fetch('{{ url_for("db_config.test_connection") }}', {
+          method: 'POST',
+          body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+          const resultDiv = document.getElementById("testConnectionResult");
+          resultDiv.innerHTML = ""; // Clear previous results
+
+          // Display database connection result
+          if (data.database_connection) {
+            if (data.database_connection.success) {
+              resultDiv.innerHTML += `<div class="alert alert-success">${data.database_connection.message}</div>`;
+            } else {
+              resultDiv.innerHTML += `<div class="alert alert-danger">Database Error: ${data.database_connection.error}</div>`;
+            }
+          }
+
+          // Display path access result
+          if (data.path_access) {
+            if (data.path_access.success) {
+              resultDiv.innerHTML += `<div class="alert alert-success">${data.path_access.message}</div>`;
+            } else {
+              resultDiv.innerHTML += `<div class="alert alert-danger">Path Error: ${data.path_access.message}</div>`;
+            }
+          }
+        })
+        .catch(error => {
+          console.error("Error:", error);
+          document.getElementById("testConnectionResult").innerHTML = `<div class="alert alert-danger">An unexpected error occurred.</div>`;
+        });
+      });
+    </script>
+
+  </body>
+</html>
