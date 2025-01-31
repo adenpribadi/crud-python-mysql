@@ -1,0 +1,48 @@
+<a class="btn btn-secondary" href="{{ url_for('purchases_order.lists', q=purchase_order.kind) }}">Back</a>
+
+{% if purchase_order.status in ['new', 'canceled1'] %}
+    <a class="btn btn-primary" href="{{ url_for('purchases_order.edit', id=purchase_order.id, q=purchase_order.kind) }}">Edit</a>
+{% endif %}
+
+<!-- Tombol Canceled & Approved 1 -->
+{% if purchase_order.status in ['approved1','canceled2'] %}
+    <button onclick="updateStatus({{ purchase_order.id }}, 'canceled1')" class="btn btn-danger">Cancel 1</button>
+{% endif %}
+{% if purchase_order.status in ['new', 'canceled1'] %}
+    <button onclick="updateStatus({{ purchase_order.id }}, 'approved1')" class="btn btn-primary">Approve 1</button>
+{% endif %}
+
+<!-- Tombol Canceled & Approved 2 -->
+{% if purchase_order.status in ['approved2','canceled3'] %}
+    <button onclick="updateStatus({{ purchase_order.id }}, 'canceled2')" class="btn btn-danger">Cancel 2</button>
+{% endif %}
+{% if purchase_order.status in ['approved1', 'canceled2'] %}
+    <button onclick="updateStatus({{ purchase_order.id }}, 'approved2')" class="btn btn-primary">Approve 2</button>
+{% endif %}
+
+<!-- Tombol Canceled & Approved 3 -->
+{% if purchase_order.status == 'approved3' %}
+    <button onclick="updateStatus({{ purchase_order.id }}, 'canceled3')" class="btn btn-danger">Cancel 3</button>
+{% endif %}
+{% if purchase_order.status in ['approved2', 'canceled3'] %}
+    <button onclick="updateStatus({{ purchase_order.id }}, 'approved3')" class="btn btn-primary">Approve 3</button>
+{% endif %}
+
+<script>
+	function updateStatus(orderId, newStatus) {
+	  fetch(`/purchases/orders/${orderId}/approve`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus })
+	  })
+	  .then(response => {
+      if (!response.ok) throw new Error("Failed to update status");
+      return response.json();
+	  })
+	  .then(data => {
+      console.log(data.message);
+      location.reload(); // Refresh halaman untuk melihat status yang diperbarui
+	  })
+	  .catch(error => console.error("Error:", error));
+	}
+</script>

@@ -1,0 +1,48 @@
+<a class="btn btn-secondary" href="{{ url_for('purchases_request.lists', q=purchase_request.request_kind) }}">Back</a>
+
+{% if purchase_request.status in ['new', 'canceled1'] %}
+  <a class="btn btn-primary" href="{{ url_for('purchases_request.edit', id=purchase_request.id, q=purchase_request.request_kind) }}">Edit</a>
+{% endif %}
+
+<!-- Tombol Canceled & Approved 1 -->
+{% if purchase_request.status in ['approved1','canceled2'] %}
+    <button onclick="updateStatus({{ purchase_request.id }}, 'canceled1')" class="btn btn-danger">Cancel 1</button>
+{% endif %}
+{% if purchase_request.status in ['new', 'canceled1'] %}
+    <button onclick="updateStatus({{ purchase_request.id }}, 'approved1')" class="btn btn-primary">Approve 1</button>
+{% endif %}
+
+<!-- Tombol Canceled & Approved 2 -->
+{% if purchase_request.status in ['approved2','canceled3'] %}
+    <button onclick="updateStatus({{ purchase_request.id }}, 'canceled2')" class="btn btn-danger">Cancel 2</button>
+{% endif %}
+{% if purchase_request.status in ['approved1', 'canceled2'] %}
+    <button onclick="updateStatus({{ purchase_request.id }}, 'approved2')" class="btn btn-primary">Approve 2</button>
+{% endif %}
+
+<!-- Tombol Canceled & Approved 3 -->
+{% if purchase_request.status == 'approved3' %}
+    <button onclick="updateStatus({{ purchase_request.id }}, 'canceled3')" class="btn btn-danger">Cancel 3</button>
+{% endif %}
+{% if purchase_request.status in ['approved2', 'canceled3'] %}
+    <button onclick="updateStatus({{ purchase_request.id }}, 'approved3')" class="btn btn-primary">Approve 3</button>
+{% endif %}
+
+<script>
+	function updateStatus(requestID, newStatus) {
+	  fetch(`/purchases/requests/${requestID}/approve`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus })
+	  })
+	  .then(response => {
+      if (!response.ok) throw new Error("Failed to update status");
+      return response.json();
+	  })
+	  .then(data => {
+      console.log(data.message);
+      location.reload(); // Refresh halaman untuk melihat status yang diperbarui
+	  })
+	  .catch(error => console.error("Error:", error));
+	}
+</script>

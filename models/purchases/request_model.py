@@ -26,6 +26,21 @@ class PurchaseRequest(Base):
     updated_by = Column(Integer, ForeignKey('users.id'))
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    
+    # New attributes for approval and cancellation tracking
+    approved1_at = Column(DateTime, nullable=True)
+    approved1_by = Column(Integer, ForeignKey('users.id'), nullable=True)
+    approved2_at = Column(DateTime, nullable=True)
+    approved2_by = Column(Integer, ForeignKey('users.id'), nullable=True)
+    approved3_at = Column(DateTime, nullable=True)
+    approved3_by = Column(Integer, ForeignKey('users.id'), nullable=True)
+
+    canceled1_at = Column(DateTime, nullable=True)
+    canceled1_by = Column(Integer, ForeignKey('users.id'), nullable=True)
+    canceled2_at = Column(DateTime, nullable=True)
+    canceled2_by = Column(Integer, ForeignKey('users.id'), nullable=True)
+    canceled3_at = Column(DateTime, nullable=True)
+    canceled3_by = Column(Integer, ForeignKey('users.id'), nullable=True)
 
     # belongs_to
     department = relationship('Department', back_populates='purchase_requests')
@@ -34,6 +49,13 @@ class PurchaseRequest(Base):
     # Relationship hanya di model PurchaseRequest
     created_user = relationship('User', foreign_keys=[created_by])
     updated_user = relationship('User', foreign_keys=[updated_by])
+
+    approved1_user = relationship("User", foreign_keys=[approved1_by])
+    approved2_user = relationship("User", foreign_keys=[approved2_by])
+    approved3_user = relationship("User", foreign_keys=[approved3_by])
+    canceled1_user = relationship("User", foreign_keys=[canceled1_by])
+    canceled2_user = relationship("User", foreign_keys=[canceled2_by])
+    canceled3_user = relationship("User", foreign_keys=[canceled3_by])
 
     # has_many
     request_items = relationship('PurchaseRequestItem', back_populates='purchase_request', lazy=True)

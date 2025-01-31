@@ -362,22 +362,24 @@
       
     }
 
-    buttonLoadPurcahseRequest.addEventListener("click", function () {
-      // Menghapus duplikasi dengan Set
-      console.clear();
-      let uniqueData = [...new Set(purchaseRequestSelected)];
+    if (buttonLoadPurcahseRequest) {
+      buttonLoadPurcahseRequest.addEventListener("click", function () {
+        // Menghapus duplikasi dengan Set
+        console.clear();
+        let uniqueData = [...new Set(purchaseRequestSelected)];
 
-      console.log(uniqueData);
-      let url = `/purchases/requests/${uniqueData.join(",")}/items`;
+        console.log(uniqueData);
+        let url = `/purchases/requests/${uniqueData.join(",")}/items`;
 
-      fetch(url)
-        .then(response => response.json())
-        .then(data => {
-          addRow(data);
-          // document.getElementById("result").innerHTML = JSON.stringify(data, null, 2);
-        })
-        .catch(error => console.error("Error:", error));
-    })
+        fetch(url)
+          .then(response => response.json())
+          .then(data => {
+            addRow(data);
+            // document.getElementById("result").innerHTML = JSON.stringify(data, null, 2);
+          })
+          .catch(error => console.error("Error:", error));
+      })
+    }
 
     function addRow(data) {
       {% if form %}

@@ -47,8 +47,8 @@
                   <p>Employee not found</p>
               {% endif %}
               
-              <a class="btn btn-secondary" href="{{ url_for('purchases_request.lists', q=purchase_request.request_kind) }}">Back</a>
-              <a class="btn btn-primary" href="{{ url_for('purchases_request.edit', id=purchase_request.id, q=purchase_request.request_kind) }}">Edit</a>
+              {% include 'purchases/requests/validation.html' %}
+              
             </div>
           </div>
         </div>

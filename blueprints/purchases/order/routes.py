@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash, session
+from flask import render_template, request, redirect, url_for, flash, session, jsonify
 from datetime import datetime, timedelta
 from . import purchases_order_bp
 from sqlalchemy.orm import joinedload
@@ -424,3 +424,70 @@ def show(id):
         } for material in materials],  # Convert material data to JSON format,
         purchase_order_items=purchase_order_items,  # Kirimkan item terkait ke template
     )
+
+# Route untuk update status purchase_order
+@purchases_order_bp.route('/purchases/orders/<int:id>/approve', methods=['PUT'])
+def approve(id):
+    db_session = get_session()
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+    
+    try:
+        # Query untuk mengambil detail PurchaseOrder berdasarkan ID
+        purchase_order = db_session.query(PurchaseOrder).get(id)
+
+        if not purchase_order:
+            return jsonify({"error": "Order not found"}), 404
+
+        data = request.json
+        new_status = data.get("status")
+
+        # Validasi status yang diperbolehkan
+        allowed_statuses = {"approved1", "approved2", "approved3", "canceled1", "canceled2", "canceled3"}
+        if new_status not in allowed_statuses:
+            return jsonify({"error": "Invalid status"}), 400
+
+        # Jika status baru adalah 'approved1'
+        if new_status == "approved1":
+            purchase_order.approved1_at = datetime.utcnow()  # Set timestamp saat disetujui
+            purchase_order.approved1_by = session.get('user_id')  # Set user yang melakukan approval
+
+        # Jika status baru adalah 'approved2'
+        elif new_status == "approved2":
+            purchase_order.approved2_at = datetime.utcnow()
+            purchase_order.approved2_by = session.get('user_id')
+
+        # Jika status baru adalah 'approved3'
+        elif new_status == "approved3":
+            purchase_order.approved3_at = datetime.utcnow()
+            purchase_order.approved3_by = session.get('user_id')
+
+        # Jika status baru adalah 'canceled1'
+        elif new_status == "canceled1":
+            purchase_order.approved1_at = None
+            purchase_order.approved1_by = None
+            purchase_order.canceled1_at = datetime.utcnow()
+            purchase_order.canceled1_by = session.get('user_id')
+
+        # Jika status baru adalah 'canceled2'
+        elif new_status == "canceled2":
+            purchase_order.approved2_at = None
+            purchase_order.approved2_by = None
+            purchase_order.canceled2_at = datetime.utcnow()
+            purchase_order.canceled2_by = session.get('user_id')
+
+        # Jika status baru adalah 'canceled3'
+        elif new_status == "canceled3":
+            purchase_order.approved3_at = None
+            purchase_order.approved3_by = None
+            purchase_order.canceled3_at = datetime.utcnow()
+            purchase_order.canceled3_by = session.get('user_id')
+
+        purchase_order.status = new_status
+        db_session.commit()
+
+        flash("Status updated: "+new_status, 'success')
+
+        return jsonify({"message": "Status updated successfully", "id": purchase_order.id, "new_status": purchase_order.status})
+    finally:
+        db_session.close()
