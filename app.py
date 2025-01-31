@@ -57,6 +57,22 @@ app.register_blueprint(purchases_request_bp) # Register purchases_request bluepr
 app.register_blueprint(purchases_order_bp) # Register purchases_order blueprint
 
 # Register blueprints by scaffold
+from blueprints.term_of_payment.routes import term_of_payment_bp
+
+app.register_blueprint(term_of_payment_bp)
+
+from blueprints.tax.routes import tax_bp
+
+app.register_blueprint(tax_bp)
+
+from blueprints.currency.routes import currency_bp
+
+app.register_blueprint(currency_bp)
+
+from blueprints.contact.routes import contact_bp
+
+app.register_blueprint(contact_bp)
+
 from blueprints.product.routes import product_bp
 
 app.register_blueprint(product_bp)

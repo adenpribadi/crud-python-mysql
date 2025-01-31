@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="card mb-4">
+  <div class="card-header">
+    Show Detail
+  </div>
+  <div class="card-body">
+		<div>
+      <div>Name: {{ currency.name }}</div>
+      <div>Symbol: {{ currency.symbol }}</div>
+      <div>Precision_digit: {{ currency.precision_digit }}</div>
+		</div>
+		<hr>
+    <a class="btn btn-secondary" href="{{ url_for('currency.lists') }}">Back</a>
+		<a class="btn btn-primary" href="{{ url_for('currency.edit', id=currency.id) }}">Edit</a>
+	</div>
+</div>
+{% endblock %}

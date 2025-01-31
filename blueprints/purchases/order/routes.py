@@ -13,6 +13,10 @@ from models.department_model import Department
 from models.employee_section_model import EmployeeSection
 from models.material_model import Material
 from models.general_model import General
+from models.contact_model import Contact
+from models.currency_model import Currency
+from models.tax_model import Tax
+from models.term_of_payment_model import TermOfPayment
 from .forms import PurchaseOrderForm
 
 @purchases_order_bp.route('/purchases/orders', methods=['GET'])
@@ -67,6 +71,10 @@ def lists():
             # Query purchase orders dengan eager loading dan filter tanggal
             purchase_orders = db_session.query(PurchaseOrder).options(
                 joinedload(PurchaseOrder.department),  # eager load department
+                joinedload(PurchaseOrder.contact),
+                joinedload(PurchaseOrder.currency),
+                joinedload(PurchaseOrder.tax),
+                joinedload(PurchaseOrder.term_of_payment),
                 joinedload(PurchaseOrder.employee_section),  # eager load employee_section
             ).filter(
                 PurchaseOrder.reference_date >= start_date,  # Filter berdasarkan tanggal awal
@@ -92,6 +100,10 @@ def new():
 
     # Ambil daftar department, status, dan user
     departments = db_session.query(Department).all()
+    contacts = db_session.query(Contact).filter_by(business_associate= 'Supplier', contact_type= 'Company').order_by(Contact.name.asc()).all()
+    currencies = db_session.query(Currency).all()
+    taxes = db_session.query(Tax).all()
+    term_of_payments = db_session.query(TermOfPayment).all()
     employee_sections = db_session.query(EmployeeSection).all()
     materials = db_session.query(Material).options(joinedload(Material.unit)).all()
     generals = db_session.query(General).options(joinedload(General.unit)).all()
@@ -103,9 +115,15 @@ def new():
         # Membuat PurchaseOrder baru
         purchase_order = PurchaseOrder(
             kind=form.kind.data,
+            top_days=form.top_days.data,
+            term_of_payment_id=form.term_of_payment.data,
+            tax_id=form.tax.data,
+            contact_id=form.contact.data,
+            currency_id=form.currency.data,
             reference_date=form.reference_date.data,
             department_id=form.department.data,
             employee_section_id=form.employee_section.data, 
+            remarks=form.remarks.data, 
             outstanding=0,
             status='new',
             created_by=session['user_id'],
@@ -169,6 +187,10 @@ def new():
     return render_template(
         'purchases/orders/new.html',
         form=form,
+        currencies=currencies,
+        contacts=contacts,
+        taxes=taxes,
+        term_of_payments=term_of_payments,
         departments=departments,
         employee_sections=[{
             'id': section.id,
@@ -208,6 +230,10 @@ def edit(id):
 
         # Ambil daftar departemen, supplier, dan item terkait
         departments = db_session.query(Department).all()
+        term_of_payments = db_session.query(TermOfPayment).all()
+        contacts = db_session.query(Contact).filter_by(business_associate= 'Supplier', contact_type= 'Company').order_by(Contact.name.asc()).all()
+        currencies = db_session.query(Currency).all()
+        taxes = db_session.query(Tax).all()
         employee_sections = db_session.query(EmployeeSection).filter_by(department_id=department_id).all()
         purchase_order_items = db_session.query(PurchaseOrderItem).filter_by(purchase_order_id=id, status='active').all()
         
@@ -240,7 +266,11 @@ def edit(id):
 
             # Update data PurchaseOrder
             purchase_order.remarks = form.remarks.data
+            purchase_order.top_days = form.top_days.data
             purchase_order.reference_date = form.reference_date.data
+            purchase_order.contact_id = form.contact.data
+            purchase_order.currency_id = form.currency.data
+            purchase_order.term_of_payment_id = form.term_of_payment.data
             
             db_session.add(purchase_order)
 
@@ -299,6 +329,10 @@ def edit(id):
             form=form,
             purchase_order=purchase_order,
             purchase_requests=purchase_requests,
+            contacts=contacts,
+            term_of_payments=term_of_payments,
+            taxes=taxes,
+            currencies=currencies,
             departments=departments,
             employee_sections=[{
                 'id': section.id,
@@ -344,7 +378,11 @@ def show(id):
         department_id = purchase_order.department_id
 
         # Query untuk daftar departemen dan employee_sections
+        currencies = db_session.query(Currency).all()
+        taxes = db_session.query(Tax).all()
+        term_of_payments = db_session.query(TermOfPayment).all()
         departments = db_session.query(Department).all()
+        contacts = db_session.query(Contact).filter_by(business_associate= 'Supplier', contact_type= 'Company').order_by(Contact.name.asc()).all()
         employee_sections = db_session.query(EmployeeSection).filter_by(department_id=department_id).all()
         materials = db_session.query(Material).options(joinedload(Material.unit)).all()
         generals = db_session.query(General).options(joinedload(General.unit)).all()
@@ -364,6 +402,10 @@ def show(id):
         'purchases/orders/show.html',
         purchase_order=purchase_order,
         disabled='true',
+        contacts=contacts,
+        currencies=currencies,
+        taxes=taxes,
+        term_of_payments=term_of_payments,
         departments=departments,
         employee_sections=[{
             'id': section.id,

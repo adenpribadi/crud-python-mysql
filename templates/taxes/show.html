@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="card mb-4">
+  <div class="card-header">
+    Show Detail
+  </div>
+  <div class="card-body">
+		<div>
+      <div>Name: {{ tax.name }}</div>
+      <div>Value: {{ tax.value }}</div>
+      <div>Status: {{ tax.status }}</div>
+		</div>
+		<hr>
+    <a class="btn btn-secondary" href="{{ url_for('tax.lists') }}">Back</a>
+		<a class="btn btn-primary" href="{{ url_for('tax.edit', id=tax.id) }}">Edit</a>
+	</div>
+</div>
+{% endblock %}

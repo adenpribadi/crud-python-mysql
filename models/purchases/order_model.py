@@ -17,11 +17,17 @@ class PurchaseOrder(Base):
     reference_date = Column(Date, default=func.now(), nullable=False)
     kind = Column(Text)
     remarks = Column(Text)
+    top_days = Column(Text)
     status = Column(Text)
     outstanding = Column(Integer)
 
     department_id = Column(Integer, ForeignKey('departments.id'))
     employee_section_id = Column(Integer, ForeignKey('employee_sections.id'))
+    contact_id = Column(Integer, ForeignKey('contacts.id'))
+    currency_id = Column(Integer, ForeignKey('currencies.id'))
+    tax_id = Column(Integer, ForeignKey('taxes.id'))
+    term_of_payment_id = Column(Integer, ForeignKey('term_of_payments.id'))
+
     created_by = Column(Integer, ForeignKey('users.id'))
     updated_by = Column(Integer, ForeignKey('users.id'))
     created_at = Column(DateTime, default=func.now())
@@ -30,6 +36,10 @@ class PurchaseOrder(Base):
     # belongs_to
     department = relationship('Department', back_populates='purchase_orders')
     employee_section = relationship('EmployeeSection', back_populates='purchase_orders')
+    contact = relationship('Contact', back_populates='purchase_orders')
+    currency = relationship('Currency', back_populates='purchase_orders')
+    tax = relationship('Tax', back_populates='purchase_orders')
+    term_of_payment = relationship('TermOfPayment', back_populates='purchase_orders')
 
     # Relationship hanya di model PurchaseOrder
     created_user = relationship('User', foreign_keys=[created_by])

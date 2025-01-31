@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="card mb-4">
+  <div class="card-header">
+    <a class="btn btn-primary" href="{{ url_for('term_of_payment.new') }}">Add</a>
+  </div>
+  <div class="card-body">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Code</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for term_of_payment in term_of_payments %}
+        <tr>
+          <td>{{ term_of_payment.id }}</td>
+          <td>{{ term_of_payment.name }}</td>
+          <td>{{ term_of_payment.code }}</td>
+          <td>
+            <a href="{{ url_for('term_of_payment.show', id=term_of_payment.id) }}">Show</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

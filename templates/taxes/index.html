@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="card mb-4">
+  <div class="card-header">
+    <a class="btn btn-primary" href="{{ url_for('tax.new') }}">Add</a>
+  </div>
+  <div class="card-body">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Value</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tax in taxes %}
+        <tr>
+          <td>{{ tax.id }}</td>
+          <td>{{ tax.name }}</td>
+          <td>{{ tax.value }}</td>
+          <td>{{ tax.status }}</td>
+          <td>
+            <a href="{{ url_for('tax.show', id=tax.id) }}">Show</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

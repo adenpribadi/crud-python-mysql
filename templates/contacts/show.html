@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="card mb-4">
+  <div class="card-header">
+    Show Detail
+  </div>
+  <div class="card-body">
+		<div>
+      <div>Name: {{ contact.name }}</div>
+      <div>Status: {{ contact.status }}</div>
+		</div>
+		<hr>
+    <a class="btn btn-secondary" href="{{ url_for('contact.lists') }}">Back</a>
+		<a class="btn btn-primary" href="{{ url_for('contact.edit', id=contact.id) }}">Edit</a>
+	</div>
+</div>
+{% endblock %}

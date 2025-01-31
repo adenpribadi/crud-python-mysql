@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="card mb-4">
+  <div class="card-header">
+    Show Detail
+  </div>
+  <div class="card-body">
+		<div>
+      <div>Name: {{ term_of_payment.name }}</div>
+      <div>Code: {{ term_of_payment.code }}</div>
+		</div>
+		<hr>
+    <a class="btn btn-secondary" href="{{ url_for('term_of_payment.lists') }}">Back</a>
+		<a class="btn btn-primary" href="{{ url_for('term_of_payment.edit', id=term_of_payment.id) }}">Edit</a>
+	</div>
+</div>
+{% endblock %}

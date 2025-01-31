@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <div class="card mb-4">
+    <div class="card-header">
+      New
+    </div>
+    <div class="card-body">
+			<form method="POST" action="{{ url_for('term_of_payment.new') }}">
+				{{ form.csrf_token }}
+			  {% include 'term_of_payments/form.html' %}
+			  <hr>
+        <a class="btn btn-secondary" href="{{ url_for('term_of_payment.lists') }}">Back</a>
+			  <button type="submit" class="btn btn-primary">Save</button>
+			</form>
+		</div>
+	</div>
+{% endblock %}

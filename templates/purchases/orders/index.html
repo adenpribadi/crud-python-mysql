@@ -100,6 +100,7 @@
                       <th>#</th>
                       <th>Action</th>
                       <th>Status</th>
+                      <th>Supplier</th>
                       <th>Department</th>
                       <th>Number</th>
                       <th>Date</th>
@@ -119,6 +120,7 @@
                           </a>
                         </td>
                         <td>{{ purchase_order.status }}</td>
+                        <td>{{ purchase_order.contact.name if purchase_order.contact else 'N/A' }}</td>
                         <td>{{ purchase_order.department.name if purchase_order.department else 'N/A' }}</td>
                         <td>{{ purchase_order.reference_number }}</td>
                         <td>{{ purchase_order.reference_date.strftime('%Y-%m-%d') }}</td>
@@ -129,6 +131,7 @@
                       <tr>
                         <td></td>
                         <td>No Data</td>
+                        <td></td>
                         <td></td>
                         <td></td>
                         <td></td>

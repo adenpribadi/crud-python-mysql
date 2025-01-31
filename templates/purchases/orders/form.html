@@ -4,17 +4,17 @@
     <label for="reference_number" class="form-label">Order Number</label>
     <input type="text" id="reference_number" class="form-control" name="reference_number" value="{{ purchase_order.reference_number if purchase_order else '' }}" disabled>
   </div>
-  <div class="col-md-3">
+  <div class="col-md-2">
     <label for="reference_date" class="form-label">Order Date</label>
     <input type="date" id="reference_date" class="form-control" name="reference_date" value="{{ purchase_order.reference_date if purchase_order else '' }}" {% if disabled == "true" %} disabled {% endif %} required
     min="{{ purchase_order.reference_date_min.strftime('%Y-%m-%d') if purchase_order else ''}}"
     max="{{ purchase_order.reference_date_max.strftime('%Y-%m-%d') if purchase_order else ''}}" >
   </div>
-  <div class="col-md-3">
+  <div class="col-md-2">
     <label for="kind" class="form-label">Kind</label>
     <input type="text" id="kind" class="form-control" name="kind" value="{{ purchase_order.kind if purchase_order else request.args.get('q') }}" readonly>
   </div>
-  <div class="col-md-3">
+  <div class="col-md-2">
     <label for="status" class="form-label">Status</label>
     <input type="text" id="status" class="form-control" name="status" value="{{ purchase_order.status if purchase_order else '' }}" disabled>
   </div>
@@ -22,10 +22,10 @@
 
 <!-- Department and Department Section -->
 <div class="row mb-4">
-  <div class="col-md-6">
+  <div class="col-md-2">
     <label for="department" class="form-label">Department</label>
     <select class="form-select" id="department" name="department" {% if disabled == "true" or (purchase_order and purchase_order.reference_number != "") %} disabled {% endif %} required>
-      <option value="">Select Department</option>
+      <option value="">--Select--</option>
       {% for department in departments %}
       <option value="{{ department.id }}" {% if purchase_order and purchase_order.department_id == department.id %} selected {% endif %}>
         {{ department.name }}
@@ -35,10 +35,10 @@
     <!-- Hidden input for department_id -->
     <input type="hidden" name="department" value="{{ purchase_order.department_id if purchase_order else '' }}">
   </div>
-  <div class="col-md-6">
+  <div class="col-md-3">
     <label for="employee_section" class="form-label">Department Section</label>
     <select class="form-select" id="employee_section" name="employee_section" {% if disabled == "true" or (purchase_order and purchase_order.reference_number != "") %} disabled {% endif %} required>
-      <option value="">Select Section</option>
+      <option value="">--Select--</option>
       {% for employee_section in employee_sections %}
       <option value="{{ employee_section.id }}" {% if purchase_order and purchase_order.employee_section_id == employee_section.id %} selected {% endif %}>
         {{ employee_section.name }}
@@ -48,9 +48,72 @@
     <!-- Hidden input for employee_section_id -->
     <input type="hidden" name="employee_section" value="{{ purchase_order.employee_section_id if purchase_order else '' }}">
   </div>
+  <div class="col-md-2">
+    <label for="currency" class="form-label">Currency</label>
+    <select class="form-select" id="currency" name="currency" {% if disabled == "true" or (purchase_order and purchase_order.reference_number != "") %} disabled {% endif %} required>
+      <option value="">--Select--</option>
+      {% for currency in currencies %}
+      <option value="{{ currency.id }}" {% if purchase_order and purchase_order.currency_id == currency.id %} selected {% endif %}>
+        {{ currency.name }}
+      </option>
+      {% endfor %}
+    </select>
+    <!-- Hidden input for currency_id -->
+    <input type="hidden" name="currency" value="{{ purchase_order.currency_id if purchase_order else '' }}">
+  </div>
+  <div class="col-md-2">
+    <label for="tax" class="form-label">Tax</label>
+    <select class="form-select" id="tax" name="tax" {% if disabled == "true" or (purchase_order and purchase_order.reference_number != "") %} disabled {% endif %} required>
+      <option value="">--Select--</option>
+      {% for tax in taxes %}
+      <option value="{{ tax.id }}" {% if purchase_order and purchase_order.tax_id == tax.id %} selected {% endif %}>
+        {{ tax.name }}
+      </option>
+      {% endfor %}
+    </select>
+    <!-- Hidden input for tax_id -->
+    <input type="hidden" name="tax" value="{{ purchase_order.tax_id if purchase_order else '' }}">
+  </div>
+  <div class="col-md-3">
+    <label for="term_of_payment" class="form-label">TOP</label>
+    <div class="row m-0">
+      <!-- Top Days Input -->
+      <div class="col-md-4 p-0">
+        <input type="text" id="top_days" class="form-control" name="top_days" value="{{ purchase_order.top_days if purchase_order else '' }}" {% if disabled == "true" %} disabled {% endif %}>
+      </div>
+      
+      <!-- Term of Payment Select -->
+      <div class="col-md-8 ps-2 pe-0">
+        <select class="form-select" id="term_of_payment" name="term_of_payment" {% if disabled == "true" or (purchase_order and purchase_order.reference_number != "") %} disabled {% endif %} required>
+          <option value="">--Select--</option>
+          {% for term_of_payment in term_of_payments %}
+            <option value="{{ term_of_payment.id }}" {% if purchase_order and purchase_order.term_of_payment_id == term_of_payment.id %} selected {% endif %}>
+              {{ term_of_payment.name }}
+            </option>
+          {% endfor %}
+        </select>
+        <!-- Hidden input for term_of_payment_id -->
+        <input type="hidden" name="term_of_payment" value="{{ purchase_order.term_of_payment_id if purchase_order else '' }}">
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <div class="row mb-4">
+  <div class="col-md-6">
+    <label for="contact" class="form-label">Supplier</label>
+    <select class="form-select" id="contact" name="contact" {% if disabled == "true" %} disabled {% endif %} required>
+      <option value="">Select Supplier</option>
+      {% for contact in contacts %}
+      <option value="{{ contact.id }}" {% if purchase_order and purchase_order.contact_id == contact.id %} selected {% endif %}>
+        {{ contact.name }}
+      </option>
+      {% endfor %}
+    </select>
+    <!-- Hidden input for contact_id -->
+    <input type="hidden" name="contact" value="{{ purchase_order.contact_id if purchase_order else '' }}">
+  </div>
   <div class="col-md-6">
     <label for="remarks" class="form-label">Note</label>
     <input type="text" id="remarks" class="form-control" name="remarks" value="{{ purchase_order.remarks if purchase_order else '' }}" {% if disabled == "true" %} disabled {% endif %}>
@@ -214,7 +277,7 @@
         const departmentId = this.value;
         console.log("Department changed:", departmentId);
 
-        employeeSectionSelect.innerHTML = '<option value="">Select Section</option>';
+        employeeSectionSelect.innerHTML = '<option value="">--Select--</option>';
         purchaseRequestSelect.innerHTML = '';
 
         if (!departmentId) {
@@ -255,7 +318,7 @@
           tsPurchaseRequest.destroy();
       }
       purchaseRequestSelect.innerHTML = '';
-      
+
       const table = document.querySelector("table tbody");
       table.innerHTML = ''; 
 
@@ -322,10 +385,9 @@
 
       const table = document.querySelector("table tbody");
       table.innerHTML = ''; 
-      const index = table.rows.length;  // Get the index for the new row (length of current rows)
       const csrf_token = "{{form.csrf_token._value()}}";
 
-      data.items.forEach((item) => {
+      data.items.forEach((item, index) => {
         console.log(item);
         const row = table.insertRow();
         // Mencari purchase_request berdasarkan purchase_request_id

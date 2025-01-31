@@ -86,3 +86,15 @@ from .purchases.order_item_model import PurchaseOrderItem
 
 # Ditambahkan pada 2024-12-31 untuk model Product
 from .product_model import Product
+
+# Ditambahkan pada 2025-01-31 untuk model contact
+from .contact_model import Contact
+
+# Ditambahkan pada 2025-01-31 untuk model Currency
+from .currency_model import Currency
+
+# Ditambahkan pada 2025-01-31 untuk model Tax
+from .tax_model import Tax
+
+# Ditambahkan pada 2025-01-31 untuk model TermOfPayment
+from .term_of_payment_model import TermOfPayment

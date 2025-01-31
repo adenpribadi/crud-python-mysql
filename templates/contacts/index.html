@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="card mb-4">
+  <div class="card-header">
+    <a class="btn btn-primary" href="{{ url_for('contact.new') }}">Add</a>
+  </div>
+  <div class="card-body">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for contact in contacts %}
+        <tr>
+          <td>{{ contact.id }}</td>
+          <td>{{ contact.name }}</td>
+          <td>{{ contact.status }}</td>
+          <td>
+            <a href="{{ url_for('contact.show', id=contact.id) }}">Show</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
