@@ -17,3 +17,4 @@ class General(Base):
 
     # has_many
     request_items = relationship('PurchaseRequestItem', back_populates='general', lazy=True)
+    order_items = relationship('PurchaseOrderItem', back_populates='general', lazy=True)

@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash, session
+from flask import render_template, jsonify, request, redirect, url_for, flash, session
 from datetime import datetime, timedelta
 from . import purchases_request_bp
 from sqlalchemy.orm import joinedload
@@ -349,3 +349,126 @@ def show(id):
         } for material in materials],  # Convert material data to JSON format,
         purchase_request_items=purchase_request_items,  # Kirimkan item terkait ke template
     )
+
+@purchases_request_bp.route('/purchases/requests/headers', defaults={'ids': None})
+@purchases_request_bp.route('/purchases/requests/headers/<ids>')
+def show_headers(ids):
+    db_session = get_session()
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+    
+    try:
+        # Jika ids ada, proses sebagai list ID yang dipisahkan koma
+        if ids:
+            try:
+                id_list = [int(i) for i in ids.split(",")]
+                purchase_requests = db_session.query(PurchaseRequest).filter(PurchaseRequest.id.in_(id_list)).all()
+
+                # Jika tidak ada data ditemukan
+                if not purchase_requests:
+                    return jsonify({"error": "Purchase requests not found!"}), 404
+            except ValueError:
+                return jsonify({"error": "Invalid ID format"}), 400
+        else:
+            # Ambil parameter dari query string
+            department_id = request.args.get('department_id')
+            employee_section_id = request.args.get('employee_section_id')
+            request_kind = request.args.get('q')
+
+            # Mulai query dasar untuk PurchaseRequest
+            query = db_session.query(PurchaseRequest)
+
+            # Tambahkan filter hanya jika parameter ada
+            if department_id:
+                query = query.filter(PurchaseRequest.department_id == department_id)
+
+            if employee_section_id:
+                query = query.filter(PurchaseRequest.employee_section_id == employee_section_id)
+
+            # Eksekusi query
+            purchase_requests = query.filter(
+                PurchaseRequest.status == "approved3",
+                PurchaseRequest.request_kind == request_kind,
+                ).order_by(
+                    PurchaseRequest.reference_date.desc(),
+                    PurchaseRequest.reference_number.desc()
+                ).all()
+
+
+        # Format hasil JSON hanya menampilkan header
+
+        result = [
+                {
+                    "id": pr.id,
+                    "reference_number": pr.reference_number,
+                    "reference_date": pr.reference_date.strftime("%Y-%m-%d") if pr.reference_date else None,
+                    "employee_section_id": pr.employee_section_id,
+                    "status": pr.status,
+                    "department_id": pr.department_id
+                } for pr in purchase_requests
+            ]
+
+        return jsonify(result)
+
+    finally:
+        db_session.close()
+
+@purchases_request_bp.route('/purchases/requests/<ids>/items')
+def show_items(ids):
+    db_session = get_session()
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+    
+    try:
+        # Ubah '1,2,3' menjadi list [1,2,3]
+        id_list = [int(i) for i in ids.split(",")]
+
+        # Ambil semua purchase requests berdasarkan ID
+        purchase_requests = db_session.query(PurchaseRequest).filter(PurchaseRequest.id.in_(id_list)).all()
+
+        # Jika tidak ada data ditemukan
+        if not purchase_requests:
+            return jsonify({"error": "Purchase requests not found!"}), 404
+
+        # Ambil semua items yang terkait dengan purchase_requests
+        purchase_request_items = db_session.query(PurchaseRequestItem).filter(
+            PurchaseRequestItem.purchase_request_id.in_(id_list),
+            PurchaseRequestItem.status == 'active'
+        ).all()
+
+        # Format hasil JSON
+        result = {
+            "purchase_requests": [
+                {
+                    "id": pr.id,
+                    "reference_number": pr.reference_number,
+                    "reference_date": pr.reference_date,
+                    "employee_section_id": pr.employee_section_id,
+                    "status": pr.status,
+                    "department_id": pr.department_id
+                } for pr in purchase_requests
+            ],
+            "items": [
+                {
+                    "id": item.id,
+                    "purchase_request_id": item.purchase_request_id,
+                    "quantity": item.quantity,
+                    "outstanding": item.outstanding,
+                    "material": {
+                        "id": item.material.id,
+                        "name": item.material.name,
+                        "unit": item.material.unit.name if item.material.unit else ''
+                    } if item.material else None,
+                    "general": {
+                        "id": item.general.id,
+                        "name": item.general.name,
+                        "unit": item.general.unit.name if item.general.unit else ''
+                    } if item.general else None
+                } for item in purchase_request_items
+            ]
+        }
+
+        return jsonify(result)
+
+    finally:
+        db_session.close()

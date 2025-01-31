@@ -14,3 +14,4 @@ class Department(Base):
     employees = relationship("Employee", back_populates="department")
     employee_sections = relationship("EmployeeSection", back_populates="department")
     purchase_requests = relationship('PurchaseRequest', back_populates='department')
+    purchase_orders = relationship('PurchaseOrder', back_populates='department')

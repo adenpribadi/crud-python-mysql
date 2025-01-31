@@ -1,0 +1,363 @@
+<!-- Orderer Name, Order Date -->
+<div class="row mb-4">
+  <div class="col-md-3">
+    <label for="reference_number" class="form-label">Order Number</label>
+    <input type="text" id="reference_number" class="form-control" name="reference_number" value="{{ purchase_order.reference_number if purchase_order else '' }}" disabled>
+  </div>
+  <div class="col-md-3">
+    <label for="reference_date" class="form-label">Order Date</label>
+    <input type="date" id="reference_date" class="form-control" name="reference_date" value="{{ purchase_order.reference_date if purchase_order else '' }}" {% if disabled == "true" %} disabled {% endif %} required
+    min="{{ purchase_order.reference_date_min.strftime('%Y-%m-%d') if purchase_order else ''}}"
+    max="{{ purchase_order.reference_date_max.strftime('%Y-%m-%d') if purchase_order else ''}}" >
+  </div>
+  <div class="col-md-3">
+    <label for="kind" class="form-label">Kind</label>
+    <input type="text" id="kind" class="form-control" name="kind" value="{{ purchase_order.kind if purchase_order else request.args.get('q') }}" readonly>
+  </div>
+  <div class="col-md-3">
+    <label for="status" class="form-label">Status</label>
+    <input type="text" id="status" class="form-control" name="status" value="{{ purchase_order.status if purchase_order else '' }}" disabled>
+  </div>
+</div>
+
+<!-- Department and Department Section -->
+<div class="row mb-4">
+  <div class="col-md-6">
+    <label for="department" class="form-label">Department</label>
+    <select class="form-select" id="department" name="department" {% if disabled == "true" or (purchase_order and purchase_order.reference_number != "") %} disabled {% endif %} required>
+      <option value="">Select Department</option>
+      {% for department in departments %}
+      <option value="{{ department.id }}" {% if purchase_order and purchase_order.department_id == department.id %} selected {% endif %}>
+        {{ department.name }}
+      </option>
+      {% endfor %}
+    </select>
+    <!-- Hidden input for department_id -->
+    <input type="hidden" name="department" value="{{ purchase_order.department_id if purchase_order else '' }}">
+  </div>
+  <div class="col-md-6">
+    <label for="employee_section" class="form-label">Department Section</label>
+    <select class="form-select" id="employee_section" name="employee_section" {% if disabled == "true" or (purchase_order and purchase_order.reference_number != "") %} disabled {% endif %} required>
+      <option value="">Select Section</option>
+      {% for employee_section in employee_sections %}
+      <option value="{{ employee_section.id }}" {% if purchase_order and purchase_order.employee_section_id == employee_section.id %} selected {% endif %}>
+        {{ employee_section.name }}
+      </option>
+      {% endfor %}
+    </select>
+    <!-- Hidden input for employee_section_id -->
+    <input type="hidden" name="employee_section" value="{{ purchase_order.employee_section_id if purchase_order else '' }}">
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-md-6">
+    <label for="remarks" class="form-label">Note</label>
+    <input type="text" id="remarks" class="form-control" name="remarks" value="{{ purchase_order.remarks if purchase_order else '' }}" {% if disabled == "true" %} disabled {% endif %}>
+  </div>
+</div>
+<hr>
+<!-- Item List Section -->
+{% if disabled != "true" %}
+  <!-- Multiple selection dari PurchaseRequest -->
+  <div class="d-flex align-items-center mb-3">
+    <label for="purchase_request" class="form-label">Purchase Request</label>
+    <div class="ms-2 me-2">
+      {% if purchase_order %}
+        {% set active_order_items = purchase_order.order_items | selectattr('status', 'equalto', 'active') | list %}
+        {% set purchase_request_ids = active_order_items 
+            | map(attribute='purchase_request_item') 
+            | select('ne', None) 
+            | map(attribute='purchase_request') 
+            | select('ne', None) 
+            | map(attribute='id') 
+            | map('string') 
+            | list 
+        %}
+      {% endif %}
+
+      <!-- Debugging: Cek isi purchase_request_ids -->
+      <!-- {{ purchase_request_ids | join(', ') }} -->
+
+      <select id="purchase_request" class="form-control" name="purchase_request[]" style="height: 30px;" multiple {% if disabled == "true" %} disabled {% endif %}>
+        {% for pr in purchase_requests %}
+          <option value="{{ pr.id }}" {% if pr.id|string in purchase_request_ids %} selected {% endif %}>
+              {{ pr.reference_number }} - {{ pr.reference_date }}
+          </option>
+        {% endfor %}
+      </select>
+
+    </div>
+    <a href="javascript:;" class="btn btn-primary" id="loadPurcahseRequest">Load</a>
+  </div>
+
+{% endif %}
+<div class="table-responsive">
+  <table class="table table-bordered">
+    <thead>
+      <tr class="table-light">
+        <th>Request Number</th>
+        <th>Name</th>
+        <th>Quantity</th>
+        <th>Unit</th>
+        <th>Unit Price</th>
+        <th>Notes</th>
+        {% if disabled != "true" %}
+        <th>Actions</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody id="purchaseOrderItem">
+      {% if purchase_order_items %}
+        {% for item in purchase_order_items %}
+        <tr>
+          <td>{{ item.purchase_request_item.purchase_request.reference_number if item.purchase_request_item and item.purchase_request_item.purchase_request else 'N/A' }}</td>
+          <td>
+            {% if form %}
+              <input type="hidden" name="items-{{ loop.index0 }}-csrf_token" value="{{ form.csrf_token._value() }}">
+            {% endif %}
+            {% set loop_index0 = loop.index0 %}
+            {% for field, value in {
+              'record_id': item.id,
+              'purchase_request_item_id': item.purchase_request_item_id,
+              'material_id': item.material.id if item.material else '',
+              'general_id': item.general.id if item.general else ''
+            }.items() %}
+              <input type="hidden" name="items-{{ loop_index0 }}-{{ field }}" value="{{ value }}">
+            {% endfor %}
+            
+            {% set query_param = request.args.get('q') %}
+            {% if query_param in ['material', 'general'] %}
+              {% set obj = item.material if query_param == 'material' else item.general %}
+              <input type="text" name="items-{{ loop.index0 }}-name" value="{{ obj.name if obj else '' }}" class="form-control" disabled autocomplete="off">
+            {% endif %}
+          </td>
+          <td>
+            <input type="number" name="items-{{ loop.index0 }}-quantity" value="{{ item.quantity }}" class="form-control" {% if disabled == "true" %} disabled {% endif %}>
+          </td>
+          <td>
+            {% if query_param in ['material', 'general'] %}
+              <input type="text" name="items-{{ loop.index0 }}-unit" value="{{ obj.unit.name if obj and obj.unit else 'N/A' }}" class="form-control" disabled autocomplete="off">
+            {% endif %}
+          </td>
+          <td>
+            <input type="number" name="items-{{ loop.index0 }}-unit_price" value="{{ item.unit_price }}" class="form-control" {% if disabled == "true" %} disabled {% endif %}>
+          </td>
+          <td>
+            <input type="text" name="items-{{ loop.index0 }}-remarks" value="{{ item.remarks }}" class="form-control" {% if disabled == "true" %} disabled {% endif %}>
+          </td>
+          {% if disabled != "true" %}
+          <td>
+            <select name="items-{{ loop.index0 }}-status" class="form-control">
+              {% for status in ['active', 'deleted'] %}
+                <option value="{{ status }}" {% if item.status == status %} selected {% endif %}>{{ status.capitalize() }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      {% endif %}
+    </tbody>
+
+
+  </table>
+</div>
+<!-- Include Tom-Select -->
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.0/dist/css/tom-select.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.0/dist/js/tom-select.complete.min.js"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    let placeholderDefault = "-- Select --";
+    let purchaseRequestSelect = document.getElementById("purchase_request");
+    let orderKind = document.getElementById("kind");
+    let departmentSelect = document.getElementById("department");
+    let employeeSectionSelect = document.getElementById("employee_section");
+    let buttonLoadPurcahseRequest = document.getElementById("loadPurcahseRequest");
+    let purchaseRequestSelected = [];
+
+    console.log("DOM Loaded");
+    console.log("purchaseRequestSelect:", purchaseRequestSelect);
+    console.log("departmentSelect:", departmentSelect);
+    console.log("employeeSectionSelect:", employeeSectionSelect);
+
+    let tsPurchaseRequest;
+
+    function initTomSelect() {
+      tsPurchaseRequest = new TomSelect(purchaseRequestSelect, {
+        placeholder: placeholderDefault,
+        allowEmptyOption: true,
+      });
+
+      // Menambahkan event listener pada perubahan selection
+      tsPurchaseRequest.on("change", function(value) {
+        // Memeriksa jika ada value yang dipilih
+        if (value) {
+          // Trigger AJAX request
+          console.log("Selected value:", value);
+          purchaseRequestSelected.push(value);
+        }
+      });
+    }
+
+    // Pastikan data backend tidak kosong
+    const employeeSections = {{ employee_sections|tojson }};
+    console.log("Employee Sections:", employeeSections);
+
+    if (!departmentSelect || !employeeSectionSelect) {
+        console.error("Dropdown tidak ditemukan!");
+        return;
+    }
+
+    departmentSelect.addEventListener("change", function () {
+        const departmentId = this.value;
+        console.log("Department changed:", departmentId);
+
+        employeeSectionSelect.innerHTML = '<option value="">Select Section</option>';
+        purchaseRequestSelect.innerHTML = '';
+
+        if (!departmentId) {
+            console.warn("Department ID kosong, tidak bisa filter!");
+            return;
+        }
+
+        const filteredSections = employeeSections.filter(
+            (section) => section.department_id == Number(departmentId)
+        );
+
+        filteredSections.forEach((section) => {
+            const option = document.createElement("option");
+            option.value = section.id;
+            option.textContent = section.name;
+            employeeSectionSelect.appendChild(option);
+        });
+
+        filterPurchaseRequests(departmentId, "");
+    });
+
+    employeeSectionSelect.addEventListener("change", function () {
+        const departmentId = departmentSelect.value;
+        const employeeSectionId = this.value;
+        console.log("Employee Section changed:", employeeSectionId);
+        filterPurchaseRequests(departmentId, employeeSectionId);
+    });
+
+    function filterPurchaseRequests(departmentId, employeeSectionId) {
+      console.log("Filtering Purchase Requests with:", { departmentId, employeeSectionId });
+
+      if (!departmentId) {
+        console.warn("Department ID kosong, tidak bisa filter Purchase Request!");
+        return;
+      }      
+
+      if (tsPurchaseRequest) {
+          tsPurchaseRequest.destroy();
+      }
+      purchaseRequestSelect.innerHTML = '';
+      
+      const table = document.querySelector("table tbody");
+      table.innerHTML = ''; 
+
+      // disini harusnya request ke purcahses/request/ by dept_id
+
+      let url = `/purchases/requests/headers?department_id=${departmentId}&employee_section_id=${employeeSectionId}&q=${orderKind.value}`;
+      
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          console.log(data);
+
+          console.log("Filtered Purchase Requests:", data);
+
+          if (data.length === 0) {
+            console.warn("No matching purchase requests found!");
+            placeholderDefault = `Data not found`;
+            // set palceholder untuk menampilkan 0 Data
+          } else {
+            placeholderDefault = `-- Select --`;
+          }
+
+          data.forEach((request) => {
+              const option = document.createElement("option");
+              option.value = request.id;
+              option.textContent = `${request.reference_number} - ${request.reference_date}`;
+              purchaseRequestSelect.appendChild(option);
+          });
+
+          initTomSelect();
+          // document.getElementById("result").innerHTML = JSON.stringify(data, null, 2);
+        })
+        .catch(error => console.error("Error:", error));
+
+      // const filteredRequests = purchaseRequests.filter((request) => {
+      //     return (
+      //         Number(request.department_id) == Number(departmentId) &&
+      //         (!employeeSectionId || Number(request.employee_section_id) == Number(employeeSectionId))
+      //     );
+      // });
+      
+    }
+
+    buttonLoadPurcahseRequest.addEventListener("click", function () {
+      // Menghapus duplikasi dengan Set
+      console.clear();
+      let uniqueData = [...new Set(purchaseRequestSelected)];
+
+      console.log(uniqueData);
+      let url = `/purchases/requests/${uniqueData.join(",")}/items`;
+
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          addRow(data);
+          // document.getElementById("result").innerHTML = JSON.stringify(data, null, 2);
+        })
+        .catch(error => console.error("Error:", error));
+    })
+
+    function addRow(data) {
+      {% if form %}
+      console.log(data);
+
+      const table = document.querySelector("table tbody");
+      table.innerHTML = ''; 
+      const index = table.rows.length;  // Get the index for the new row (length of current rows)
+      const csrf_token = "{{form.csrf_token._value()}}";
+
+      data.items.forEach((item) => {
+        console.log(item);
+        const row = table.insertRow();
+        // Mencari purchase_request berdasarkan purchase_request_id
+        const purchaseRequest = data.purchase_requests.find(pr => pr.id === item.purchase_request_id);
+
+        // Jika ditemukan, ambil reference_number
+        const referenceNumber = purchaseRequest ? purchaseRequest.reference_number : '';
+
+        const part_name = item.material ? item.material.name : item.general ? item.general.name : '';
+        const unit_name = item.material ? item.material.unit : item.general ? item.general.unit : '';
+        row.innerHTML = `
+          <td><input type="text" name="items-${index}-request_number" class="form-control" value="${referenceNumber}" disabled></td>
+          <td>
+            <input type="hidden" name="items-${index}-csrf_token" value="${csrf_token}">
+            <input type="hidden" name="items-${index}-purchase_request_item_id" value="${item.id}">
+            <input type="hidden" name="items-${index}-material_id" value="${item.material ? item.material.id : ''}">
+            <input type="hidden" name="items-${index}-general_id" value="${item.general ? item.general.id : ''}">
+            <input type="text" name="items-${index}-name" class="form-control" value="${part_name}" disabled>
+          </td>
+          <td><input type="number" name="items-${index}-quantity" class="form-control" value="${item.outstanding}" min=1 required readonly></td>
+          <td><input type="text" name="items-${index}-unit" class="form-control" value="${unit_name}" disabled></td>
+          <td><input type="number" name="items-${index}-unit_price" class="form-control" required></td>
+          <td><input type="text" name="items-${index}-remarks" class="form-control"></td>
+          <td><button type="button" class="btn btn-danger" onclick="removeItem(this)">Remove</button></td>
+        `;
+      });
+      {% endif %}
+    }
+
+    {% if form %}
+      initTomSelect()
+    {% endif %}
+  });
+
+</script>

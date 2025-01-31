@@ -1,4 +1,30 @@
 # app.py
+import os
+from dotenv import load_dotenv
+
+# Fungsi untuk memeriksa dan membuat file .env jika tidak ada
+def check_and_create_env():
+    env_file = '.env'
+    if not os.path.exists(env_file):
+        # Jika .env tidak ada, buat dengan default value
+        with open(env_file, 'w') as f:
+            f.write("DB_USER='userMysql'\n")
+            f.write("DB_PASSWORD='pwdMysql'\n")
+            f.write("DB_HOST='127.0.0.1'\n")
+            f.write("DB_PORT='3306'\n")
+            f.write("DB_NAME='db_app'\n")
+            f.write("CDN_HOST='127.0.0.1'\n")
+            f.write("CDN_USER='user_win'\n")
+            f.write("CDN_PASSWORD='passwd_win'\n")
+        print(f"{env_file} tidak ditemukan. File .env baru telah dibuat.")
+    else:
+        print(f"{env_file} sudah ada.")
+
+# Panggil fungsi pengecekan .env
+check_and_create_env()
+
+# Memuat variabel dari .env
+load_dotenv()
 
 from flask import Flask, render_template, request, redirect, url_for, session
 
@@ -6,6 +32,7 @@ from blueprints.auth.routes import auth_bp
 from blueprints.employee.routes import employee_bp
 from blueprints.db_config.routes import db_bp
 from blueprints.purchases.request import purchases_request_bp
+from blueprints.purchases.order import purchases_order_bp
 
 import os
 import threading
@@ -27,6 +54,7 @@ app.register_blueprint(employee_bp)
 app.register_blueprint(db_bp)  # Register db_config blueprint
 
 app.register_blueprint(purchases_request_bp) # Register purchases_request blueprint
+app.register_blueprint(purchases_order_bp) # Register purchases_order blueprint
 
 # Register blueprints by scaffold
 from blueprints.product.routes import product_bp

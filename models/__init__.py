@@ -81,6 +81,8 @@ from .employee_section_model import EmployeeSection
 from .position_model import Position  # Pastikan model Position diimpor setelah definisi model lainnya
 from .purchases.request_model import PurchaseRequest
 from .purchases.request_item_model import PurchaseRequestItem
+from .purchases.order_model import PurchaseOrder
+from .purchases.order_item_model import PurchaseOrderItem
 
 # Ditambahkan pada 2024-12-31 untuk model Product
 from .product_model import Product

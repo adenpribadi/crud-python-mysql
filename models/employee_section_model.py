@@ -21,3 +21,4 @@ class EmployeeSection(Base):
 
     # has_many
     purchase_requests = relationship('PurchaseRequest', back_populates='employee_section')
+    purchase_orders = relationship('PurchaseOrder', back_populates='employee_section')

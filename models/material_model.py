@@ -17,3 +17,4 @@ class Material(Base):
 
     # has_many
     request_items = relationship('PurchaseRequestItem', back_populates='material', lazy=True)
+    order_items = relationship('PurchaseOrderItem', back_populates='material', lazy=True)
