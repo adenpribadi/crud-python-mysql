@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash, session, jsonify
+from flask import render_template, request, redirect, url_for, flash, session, jsonify, Response
 from datetime import datetime, timedelta
 from . import purchases_order_bp
 from sqlalchemy.orm import joinedload
@@ -19,6 +19,10 @@ from models.tax_model import Tax
 from models.term_of_payment_model import TermOfPayment
 from .forms import PurchaseOrderForm
 
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from io import BytesIO
+
 @purchases_order_bp.route('/purchases/orders', methods=['GET'])
 def lists():
     # Gunakan db_session untuk query dengan eager loading
@@ -27,19 +31,35 @@ def lists():
         return redirect(url_for('auth.login'))
 
     try:
-        # Default: hitung tanggal awal (awal bulan) dan tanggal akhir (akhir bulan)
+        # Dapatkan tanggal hari ini
         today = datetime.today()
-        start_date = today.replace(day=1)
+
+        # Tentukan tanggal awal bulan
+        default_start_date = today.replace(day=1)
+
+        # Tentukan tanggal akhir bulan
         next_month = today.replace(day=28) + timedelta(days=4)
-        end_date = next_month - timedelta(days=next_month.day)
+        default_end_date = next_month.replace(day=1) - timedelta(days=1)  # Akhir bulan ini
 
-        # Ambil tanggal dari query string jika tersedia
-        start_date_str = request.args.get('start_date', start_date.strftime('%Y-%m-%d'))
-        end_date_str = request.args.get('end_date', end_date.strftime('%Y-%m-%d'))
+        # Cek apakah session sudah ada, jika tidak gunakan default
+        start_date_str = session.get('start_date', default_start_date.strftime('%Y-%m-%d'))
+        end_date_str = session.get('end_date', default_end_date.strftime('%Y-%m-%d'))
 
-        # Konversi string ke objek tanggal
+        # Cek apakah ada parameter di query string, jika ada maka override session
+        start_date_str = request.args.get('start_date', start_date_str)
+        end_date_str = request.args.get('end_date', end_date_str)
+
+        # Konversi string ke objek datetime
         start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
         end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+
+        # Simpan ke session dalam format string
+        session['start_date'] = start_date.strftime('%Y-%m-%d')
+        session['end_date'] = end_date.strftime('%Y-%m-%d')
+
+        # Debugging (Opsional)
+        print("Start Date:", session['start_date'])
+        print("End Date:", session['end_date'])
 
         # Ambil kind dari query string
         kind = request.args.get('q')
@@ -90,7 +110,7 @@ def lists():
         db_session.close()
 
     # Kirim data ke template
-    return render_template('purchases/orders/index.html', purchase_orders=purchase_orders, start_date=start_date_str, end_date=end_date_str, view_option=view_option)
+    return render_template('purchases/orders/index.html', purchase_orders=purchase_orders, view_option=view_option)
 
 @purchases_order_bp.route('/purchases/orders/new', methods=['GET', 'POST'])
 def new():
@@ -491,3 +511,37 @@ def approve(id):
         return jsonify({"message": "Status updated successfully", "id": purchase_order.id, "new_status": purchase_order.status})
     finally:
         db_session.close()
+
+@purchases_order_bp.route('/purchases/orders/<int:id>/print', methods=['GET'])
+def print_order(id):
+    db_session = get_session()
+    purchase_order = db_session.query(PurchaseOrder).get(id)
+
+    if not purchase_order:
+        return jsonify({"error": "Order not found"}), 404
+
+    # Membuat PDF di memory menggunakan ReportLab
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+
+    # Menambahkan teks ke PDF (contoh saja, kamu bisa menyesuaikan lebih lanjut)
+    c.drawString(100, 750, f"Purchase Order ID: {purchase_order.id}")
+    c.drawString(100, 730, f"Status: {purchase_order.status}")
+    c.drawString(100, 710, f"Created At: {purchase_order.created_at}")
+
+    # Menambahkan informasi detail lainnya, sesuai kebutuhan
+    c.drawString(100, 690, f"Order Kind: {purchase_order.kind}")
+
+    # Akhiri PDF dan simpan ke buffer
+    c.showPage()
+    c.save()
+
+    # Ambil konten PDF dari buffer
+    buffer.seek(0)
+    pdf = buffer.read()
+
+    # Mengirimkan PDF sebagai response
+    response = Response(pdf, content_type="application/pdf")
+    response.headers["Content-Disposition"] = f"inline; filename=PurchaseOrder_{id}.pdf"
+
+    return response

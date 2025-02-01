@@ -20,19 +20,35 @@ def lists():
         return redirect(url_for('auth.login'))
 
     try:
-        # Default: hitung tanggal awal (awal bulan) dan tanggal akhir (akhir bulan)
+        # Dapatkan tanggal hari ini
         today = datetime.today()
-        start_date = today.replace(day=1)
+
+        # Tentukan tanggal awal bulan
+        default_start_date = today.replace(day=1)
+
+        # Tentukan tanggal akhir bulan
         next_month = today.replace(day=28) + timedelta(days=4)
-        end_date = next_month - timedelta(days=next_month.day)
+        default_end_date = next_month.replace(day=1) - timedelta(days=1)  # Akhir bulan ini
 
-        # Ambil tanggal dari query string jika tersedia
-        start_date_str = request.args.get('start_date', start_date.strftime('%Y-%m-%d'))
-        end_date_str = request.args.get('end_date', end_date.strftime('%Y-%m-%d'))
+        # Cek apakah session sudah ada, jika tidak gunakan default
+        start_date_str = session.get('start_date', default_start_date.strftime('%Y-%m-%d'))
+        end_date_str = session.get('end_date', default_end_date.strftime('%Y-%m-%d'))
 
-        # Konversi string ke objek tanggal
+        # Cek apakah ada parameter di query string, jika ada maka override session
+        start_date_str = request.args.get('start_date', start_date_str)
+        end_date_str = request.args.get('end_date', end_date_str)
+
+        # Konversi string ke objek datetime
         start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
         end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+
+        # Simpan ke session dalam format string
+        session['start_date'] = start_date.strftime('%Y-%m-%d')
+        session['end_date'] = end_date.strftime('%Y-%m-%d')
+
+        # Debugging (Opsional)
+        print("Start Date:", session['start_date'])
+        print("End Date:", session['end_date'])
 
         # Ambil request_kind dari query string
         request_kind = request.args.get('q')
@@ -79,7 +95,7 @@ def lists():
         db_session.close()
 
     # Kirim data ke template
-    return render_template('purchases/requests/index.html', purchase_requests=purchase_requests, start_date=start_date_str, end_date=end_date_str, view_option=view_option)
+    return render_template('purchases/requests/index.html', purchase_requests=purchase_requests, view_option=view_option)
 
 @purchases_request_bp.route('/purchases/requests/new', methods=['GET', 'POST'])
 def new():
